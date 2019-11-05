@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.redisson;
 
 import org.redisson.api.listener.PatternMessageListener;
-import org.redisson.client.ChannelName;
 import org.redisson.client.RedisPubSubListener;
 import org.redisson.client.protocol.pubsub.PubSubType;
 
@@ -30,18 +29,21 @@ public class PubSubPatternMessageListener<V> implements RedisPubSubListener<V> {
 
     private final PatternMessageListener<V> listener;
     private final String name;
+    private final Class<V> type;
 
     public String getName() {
         return name;
     }
 
-    public PubSubPatternMessageListener(PatternMessageListener<V> listener, String name) {
+    public PubSubPatternMessageListener(Class<V> type, PatternMessageListener<V> listener, String name) {
         super();
         this.listener = listener;
         this.name = name;
+        this.type = type;
     }
 
     @Override
+    @SuppressWarnings("AvoidInlineConditionals")
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -77,7 +79,7 @@ public class PubSubPatternMessageListener<V> implements RedisPubSubListener<V> {
     @Override
     public void onPatternMessage(CharSequence pattern, CharSequence channel, V message) {
         // could be subscribed to multiple channels
-        if (name.equals(pattern.toString())) {
+        if (name.equals(pattern.toString()) && type.isInstance(message)) {
             listener.onMessage(pattern, channel, message);
         }
     }

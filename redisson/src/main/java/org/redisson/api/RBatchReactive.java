@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@ package org.redisson.api;
 
 import java.util.concurrent.TimeUnit;
 
-import org.reactivestreams.Publisher;
 import org.redisson.client.codec.Codec;
 
+import reactor.core.publisher.Mono;
+
 /**
- * Interface for using pipeline feature.
- *
+ * Reactive interface for Redis pipeline feature.
+ * <p>
  * All method invocations on objects
  * from this interface are batched to separate queue and could be executed later
  * with <code>execute()</code> method.
@@ -33,6 +34,32 @@ import org.redisson.client.codec.Codec;
  */
 public interface RBatchReactive {
 
+    /**
+     * Returns stream instance by <code>name</code>
+     * <p>
+     * Requires <b>Redis 5.0.0 and higher.</b>
+     * 
+     * @param <K> type of key
+     * @param <V> type of value
+     * @param name of stream
+     * @return RStream object
+     */
+    <K, V> RStreamReactive<K, V> getStream(String name);
+    
+    /**
+     * Returns stream instance by <code>name</code>
+     * using provided <code>codec</code> for entries.
+     * <p>
+     * Requires <b>Redis 5.0.0 and higher.</b>
+     * 
+     * @param <K> type of key
+     * @param <V> type of value
+     * @param name - name of stream
+     * @param codec - codec for entry
+     * @return RStream object
+     */
+    <K, V> RStreamReactive<K, V> getStream(String name, Codec codec);
+    
     /**
      * Returns geospatial items holder instance by <code>name</code>.
      * 
@@ -212,13 +239,12 @@ public interface RBatchReactive {
     /**
      * Returns topic instance by name.
      *
-     * @param <M> type of message
      * @param name - name of object
      * @return Topic object
      */
-    <M> RTopicReactive<M> getTopic(String name);
+    RTopicReactive getTopic(String name);
 
-    <M> RTopicReactive<M> getTopic(String name, Codec codec);
+    RTopicReactive getTopic(String name, Codec codec);
 
     /**
      * Returns queue instance by name.
@@ -260,9 +286,9 @@ public interface RBatchReactive {
      * @param name - name of object
      * @return Deque object
      */
-    <V> RDequeReactive<V> getDequeReactive(String name);
+    <V> RDequeReactive<V> getDeque(String name);
 
-    <V> RDequeReactive<V> getDequeReactive(String name, Codec codec);
+    <V> RDequeReactive<V> getDeque(String name, Codec codec);
 
     /**
      * Returns "atomic long" instance by name.
@@ -270,7 +296,7 @@ public interface RBatchReactive {
      * @param name - name of object
      * @return AtomicLong object
      */
-    RAtomicLongReactive getAtomicLongReactive(String name);
+    RAtomicLongReactive getAtomicLong(String name);
 
     /**
      * Returns atomicDouble instance by name.
@@ -317,6 +343,14 @@ public interface RBatchReactive {
     RScriptReactive getScript();
 
     /**
+     * Returns script operations object using provided codec.
+     * 
+     * @param codec - codec for params and result
+     * @return Script object
+     */
+    RScriptReactive getScript(Codec codec);
+    
+    /**
      * Returns keys operations.
      * Each of Redis/Redisson object associated with own key
      *
@@ -332,14 +366,14 @@ public interface RBatchReactive {
      *
      * @return List with result object for each command
      */
-    Publisher<BatchResult<?>> execute();
+    Mono<BatchResult<?>> execute();
 
     /*
      * Use BatchOptions#atomic
      */
     @Deprecated
     RBatchReactive atomic();
-    
+
     /*
      * Use BatchOptions#skipResult
      */

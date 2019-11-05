@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.redisson.RedissonMap;
+import org.redisson.api.RCountDownLatch;
 import org.redisson.api.RFuture;
 import org.redisson.api.RLock;
 import org.redisson.api.RMap;
+import org.redisson.api.RPermitExpirableSemaphore;
 import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RSemaphore;
 import org.redisson.api.mapreduce.RMapReduce;
 import org.redisson.client.RedisClient;
 import org.redisson.client.codec.Codec;
@@ -49,24 +52,24 @@ public class RedissonTransactionalMap<K, V> extends RedissonMap<K, V> {
 
     public RedissonTransactionalMap(CommandAsyncExecutor commandExecutor,  
             List<TransactionalOperation> operations, long timeout, AtomicBoolean executed, RMap<K, V> innerMap, String transactionId) {
-        super(innerMap.getCodec(), commandExecutor, innerMap.getName(), null, null);
+        super(innerMap.getCodec(), commandExecutor, innerMap.getName(), null, null, null);
         this.executed = executed;
         this.transactionalMap = new BaseTransactionalMap<K, V>(commandExecutor, timeout, operations, innerMap, transactionId);
     }
     
     public RedissonTransactionalMap(CommandAsyncExecutor commandExecutor, String name, 
             List<TransactionalOperation> operations, long timeout, AtomicBoolean executed, String transactionId) {
-        super(commandExecutor, name, null, null);
+        super(commandExecutor, name, null, null, null);
         this.executed = executed;
-        RedissonMap<K, V> innerMap = new RedissonMap<K, V>(commandExecutor, name, null, null);
+        RedissonMap<K, V> innerMap = new RedissonMap<K, V>(commandExecutor, name, null, null, null);
         this.transactionalMap = new BaseTransactionalMap<K, V>(commandExecutor, timeout, operations, innerMap, transactionId);
     }
 
     public RedissonTransactionalMap(Codec codec, CommandAsyncExecutor commandExecutor, String name,
             List<TransactionalOperation> operations, long timeout, AtomicBoolean executed, String transactionId) {
-        super(codec, commandExecutor, name, null, null);
+        super(codec, commandExecutor, name, null, null, null);
         this.executed = executed;
-        RedissonMap<K, V> innerMap = new RedissonMap<K, V>(codec, commandExecutor, name, null, null);
+        RedissonMap<K, V> innerMap = new RedissonMap<K, V>(codec, commandExecutor, name, null, null, null);
         this.transactionalMap = new BaseTransactionalMap<K, V>(commandExecutor, timeout, operations, innerMap, transactionId);
     }
     
@@ -270,6 +273,26 @@ public class RedissonTransactionalMap<K, V> extends RedissonMap<K, V> {
     @Override
     public RFuture<Void> loadAllAsync(Set<? extends K> keys, boolean replaceExistingValues, int parallelism) {
         throw new UnsupportedOperationException("loadAll method is not supported in transaction");
+    }
+    
+    @Override
+    public RLock getFairLock(K key) {
+        throw new UnsupportedOperationException("getFairLock method is not supported in transaction");
+    }
+    
+    @Override
+    public RCountDownLatch getCountDownLatch(K key) {
+        throw new UnsupportedOperationException("getCountDownLatch method is not supported in transaction");
+    }
+    
+    @Override
+    public RPermitExpirableSemaphore getPermitExpirableSemaphore(K key) {
+        throw new UnsupportedOperationException("getPermitExpirableSemaphore method is not supported in transaction");
+    }
+    
+    @Override
+    public RSemaphore getSemaphore(K key) {
+        throw new UnsupportedOperationException("getSemaphore method is not supported in transaction");
     }
     
     @Override

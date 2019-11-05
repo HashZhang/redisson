@@ -63,7 +63,7 @@ public class RedissonBoundedBlockingQueueTest extends BaseTest {
         assertThat(queue.offer(6, 3, TimeUnit.SECONDS)).isTrue();
         assertThat(System.currentTimeMillis() - start).isBetween(1000L, 2000L);
         
-        await().atMost(2, TimeUnit.SECONDS).until(() -> executed.get());
+        await().atMost(2, TimeUnit.SECONDS).untilTrue(executed);
         
         assertThat(queue).containsExactly(2, 3, 4, 5, 6);
         
@@ -142,7 +142,7 @@ public class RedissonBoundedBlockingQueueTest extends BaseTest {
 
         queue1.put(4);
         
-        await().atMost(5, TimeUnit.SECONDS).until(() -> executed.get());
+        await().atMost(5, TimeUnit.SECONDS).untilTrue(executed);
         
         assertThat(queue1).containsExactly(2, 3, 4);
         
@@ -172,7 +172,7 @@ public class RedissonBoundedBlockingQueueTest extends BaseTest {
     }
     
     @Test
-    public void testRemainingCapacity() {
+    public void testRemainingCapacity() throws InterruptedException {
         RBoundedBlockingQueue<Integer> queue1 = redisson.getBoundedBlockingQueue("bounded-queue:testRemainingCapacity");
         assertThat(queue1.trySetCapacity(3)).isTrue();
         assertThat(queue1.remainingCapacity()).isEqualTo(3);
@@ -182,6 +182,13 @@ public class RedissonBoundedBlockingQueueTest extends BaseTest {
         assertThat(queue1.remainingCapacity()).isEqualTo(1);
         assertThat(queue1.add(3)).isTrue();
         assertThat(queue1.remainingCapacity()).isEqualTo(0);
+        
+        RBoundedBlockingQueue<Integer> queue2 = redisson.getBoundedBlockingQueue("bounded-queue:testRemainingCapacityEmpty");
+        assertThat(queue2.trySetCapacity(3)).isTrue();
+        for (int i = 0; i < 5; i++) {
+            queue2.poll(1, TimeUnit.SECONDS);
+            assertThat(queue2.remainingCapacity()).isEqualTo(3);
+        }
     }
     
     @Test
@@ -292,7 +299,7 @@ public class RedissonBoundedBlockingQueueTest extends BaseTest {
         
         t.join();
         
-        await().atMost(5, TimeUnit.SECONDS).until(() -> executed.get());
+        await().atMost(5, TimeUnit.SECONDS).untilTrue(executed);
         
         redisson.shutdown();
         runner.stop();

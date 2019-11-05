@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,103 +15,36 @@
  */
 package org.redisson.reactive;
 
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Callable;
 
-import org.reactivestreams.Publisher;
-import org.redisson.RedissonBlockingQueue;
-import org.redisson.api.RBlockingQueueAsync;
-import org.redisson.api.RBlockingQueueReactive;
+import org.redisson.api.RBlockingQueue;
 import org.redisson.api.RFuture;
-import org.redisson.client.codec.Codec;
-import org.redisson.command.CommandReactiveExecutor;
+import org.redisson.api.RListAsync;
 
-import reactor.fn.Supplier;
+import reactor.core.publisher.Flux;
 
 /**
- * <p>Distributed and concurrent implementation of {@link java.util.concurrent.BlockingQueue}.
- *
- * <p>Queue size limited by Redis server memory amount.
- *
- * @author pdeschen@gmail.com
+ * 
  * @author Nikita Koksharov
+ *
+ * @param <V> - value type
  */
-public class RedissonBlockingQueueReactive<V> extends RedissonQueueReactive<V> implements RBlockingQueueReactive<V> {
+public class RedissonBlockingQueueReactive<V> extends RedissonListReactive<V> {
 
-    private final RBlockingQueueAsync<V> instance;
+    private final RBlockingQueue<V> queue;
     
-    public RedissonBlockingQueueReactive(CommandReactiveExecutor commandExecutor, String name) {
-        super(commandExecutor, name);
-        instance = new RedissonBlockingQueue<V>(commandExecutor, name, null);
+    public RedissonBlockingQueueReactive(RBlockingQueue<V> queue) {
+        super((RListAsync<V>) queue);
+        this.queue = queue;
     }
 
-    public RedissonBlockingQueueReactive(Codec codec, CommandReactiveExecutor commandExecutor, String name) {
-        super(codec, commandExecutor, name);
-        instance = new RedissonBlockingQueue<V>(codec, commandExecutor, name, null);
-    }
-
-    @Override
-    public Publisher<Integer> put(V e) {
-        return offer(e);
-    }
-
-    @Override
-    public Publisher<V> take() {
-        return reactive(new Supplier<RFuture<V>>() {
+    public Flux<V> takeElements() {
+        return ElementsStream.takeElements(new Callable<RFuture<V>>() {
             @Override
-            public RFuture<V> get() {
-                return instance.takeAsync();
+            public RFuture<V> call() throws Exception {
+                return queue.takeAsync();
             }
         });
     }
-
-    @Override
-    public Publisher<V> poll(final long timeout, final TimeUnit unit) {
-        return reactive(new Supplier<RFuture<V>>() {
-            @Override
-            public RFuture<V> get() {
-                return instance.pollAsync(timeout, unit);
-            }
-        });
-    }
-
-    @Override
-    public Publisher<V> pollFromAny(final long timeout, final TimeUnit unit, final String ... queueNames) {
-        return reactive(new Supplier<RFuture<V>>() {
-            @Override
-            public RFuture<V> get() {
-                return instance.pollFromAnyAsync(timeout, unit, queueNames);
-            }
-        });
-    }
-
-    @Override
-    public Publisher<V> pollLastAndOfferFirstTo(final String queueName, final long timeout, final TimeUnit unit) {
-        return reactive(new Supplier<RFuture<V>>() {
-            @Override
-            public RFuture<V> get() {
-                return instance.pollLastAndOfferFirstToAsync(queueName, timeout, unit);
-            }
-        });
-    }
-
-    @Override
-    public Publisher<Integer> drainTo(final Collection<? super V> c) {
-        return reactive(new Supplier<RFuture<Integer>>() {
-            @Override
-            public RFuture<Integer> get() {
-                return instance.drainToAsync(c);
-            }
-        });
-    }
-
-    @Override
-    public Publisher<Integer> drainTo(final Collection<? super V> c, final int maxElements) {
-        return reactive(new Supplier<RFuture<Integer>>() {
-            @Override
-            public RFuture<Integer> get() {
-                return instance.drainToAsync(c, maxElements);
-            }
-        });
-    }
+    
 }

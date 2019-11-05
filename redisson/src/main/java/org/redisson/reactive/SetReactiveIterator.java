@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package org.redisson.reactive;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
+
+import org.redisson.api.RFuture;
 import org.redisson.client.RedisClient;
 import org.redisson.client.protocol.decoder.ListScanResult;
 
-import reactor.rx.Stream;
-import reactor.rx.subscription.ReactiveSubscription;
+import reactor.core.publisher.FluxSink;
 
 /**
  * 
@@ -30,69 +31,74 @@ import reactor.rx.subscription.ReactiveSubscription;
  *
  * @param <V> value type
  */
-public abstract class SetReactiveIterator<V> extends Stream<V> {
+public abstract class SetReactiveIterator<V> implements Consumer<FluxSink<V>> {
 
     @Override
-    public void subscribe(final Subscriber<? super V> t) {
-        t.onSubscribe(new ReactiveSubscription<V>(this, t) {
-
+    public void accept(FluxSink<V> emitter) {
+        emitter.onRequest(new LongConsumer() {
+            
             private long nextIterPos;
             private RedisClient client;
-
+            private AtomicLong elementsRead = new AtomicLong();
+            
             private boolean finished;
-
+            private volatile boolean completed;
+            private AtomicLong readAmount = new AtomicLong();
+            
             @Override
-            protected void onRequest(long n) {
-                nextValues();
+            public void accept(long value) {
+                readAmount.addAndGet(value);
+                if (completed || elementsRead.get() == 0) {
+                    nextValues(emitter);
+                    completed = false;
+                }
             }
-
-            protected void nextValues() {
-                final ReactiveSubscription<V> m = this;
-                scanIteratorReactive(client, nextIterPos).subscribe(new Subscriber<ListScanResult<Object>>() {
-
-                    @Override
-                    public void onSubscribe(Subscription s) {
-                        s.request(Long.MAX_VALUE);
+            
+            protected void nextValues(FluxSink<V> emitter) {
+                scanIterator(client, nextIterPos).onComplete((res, e) -> {
+                    if (e != null) {
+                        emitter.error(e);
+                        return;
+                    }
+                    
+                    if (finished) {
+                        client = null;
+                        nextIterPos = 0;
+                        return;
                     }
 
-                    @Override
-                    public void onNext(ListScanResult<Object> res) {
-                        if (finished) {
-                            client = null;
-                            nextIterPos = 0;
-                            return;
-                        }
+                    client = res.getRedisClient();
+                    nextIterPos = res.getPos();
 
-                        client = res.getRedisClient();
-                        nextIterPos = res.getPos();
-                        
-                        for (Object val : res.getValues()) {
-                            m.onNext((V)val);
-                        }
-
-                        if (res.getPos() == 0) {
-                            finished = true;
-                            m.onComplete();
-                        }
+                    for (Object val : res.getValues()) {
+                        emitter.next((V) val);
+                        elementsRead.incrementAndGet();
                     }
-
-                    @Override
-                    public void onError(Throwable error) {
-                        m.onError(error);
+                    
+                    if (elementsRead.get() >= readAmount.get()) {
+                        emitter.complete();
+                        elementsRead.set(0);
+                        completed = true;
+                        return;
                     }
-
-                    @Override
-                    public void onComplete() {
-                        if (finished) {
-                            return;
-                        }
-                        nextValues();
+                    if (res.getPos() == 0 && !tryAgain()) {
+                        finished = true;
+                        emitter.complete();
                     }
+                    
+                    if (finished || completed) {
+                        return;
+                    }
+                    nextValues(emitter);
                 });
             }
         });
     }
     
-    protected abstract Publisher<ListScanResult<Object>> scanIteratorReactive(RedisClient client, long nextIterPos);
+    protected boolean tryAgain() {
+        return false;
+    }
+    
+    protected abstract RFuture<ListScanResult<Object>> scanIterator(RedisClient client, long nextIterPos);
 
 }

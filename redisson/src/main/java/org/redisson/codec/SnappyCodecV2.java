@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,10 @@ import org.redisson.client.codec.Codec;
 import org.redisson.client.handler.State;
 import org.redisson.client.protocol.Decoder;
 import org.redisson.client.protocol.Encoder;
-import org.xerial.snappy.SnappyInputStream;
-import org.xerial.snappy.SnappyOutputStream;
+import org.xerial.snappy.Snappy;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
 
 /**
  * Google's Snappy compression codec.
@@ -58,13 +55,18 @@ public class SnappyCodecV2 extends BaseCodec {
         this(new FstCodec(classLoader));
     }
     
+    public SnappyCodecV2(ClassLoader classLoader, SnappyCodecV2 codec) throws ReflectiveOperationException {
+        this(copy(classLoader, codec.innerCodec));
+    }
+    
     private final Decoder<Object> decoder = new Decoder<Object>() {
         
         @Override
         public Object decode(ByteBuf buf, State state) throws IOException {
-            SnappyInputStream input = new SnappyInputStream(new ByteBufInputStream(buf));
-            ByteBuf bf = ByteBufAllocator.DEFAULT.buffer(buf.readableBytes());
-            bf.writeBytes(input, buf.readableBytes());
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            bytes = Snappy.uncompress(bytes);
+            ByteBuf bf = Unpooled.wrappedBuffer(bytes);
             try {
                 return innerCodec.getValueDecoder().decode(bf, state);
             } finally {
@@ -78,15 +80,11 @@ public class SnappyCodecV2 extends BaseCodec {
         @Override
         public ByteBuf encode(Object in) throws IOException {
             ByteBuf encoded = innerCodec.getValueEncoder().encode(in);
-            ByteBuf out = ByteBufAllocator.DEFAULT.buffer(encoded.readableBytes());
-            try {
-                SnappyOutputStream output = new SnappyOutputStream(new ByteBufOutputStream(out));
-                encoded.readBytes(output, encoded.readableBytes());
-                output.flush();
-            } finally {
-                encoded.release();
-            }
-            return out;
+            byte[] bytes = new byte[encoded.readableBytes()];
+            encoded.readBytes(bytes);
+            encoded.release();
+            byte[] res = Snappy.compress(bytes);
+            return Unpooled.wrappedBuffer(res);
         }
     };
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,11 @@
  */
 package org.redisson.reactive;
 
-import java.util.List;
-
-import org.reactivestreams.Publisher;
 import org.redisson.RedissonListMultimap;
-import org.redisson.api.RFuture;
 import org.redisson.api.RList;
 import org.redisson.api.RListMultimap;
-import org.redisson.api.RListMultimapReactive;
 import org.redisson.api.RListReactive;
 import org.redisson.client.codec.Codec;
-import org.redisson.command.CommandReactiveExecutor;
-
-import reactor.fn.Supplier;
 
 /**
  * 
@@ -36,50 +28,25 @@ import reactor.fn.Supplier;
  * @param <K> key type
  * @param <V> value type
  */
-public class RedissonListMultimapReactive<K, V> extends RedissonBaseMultimapReactive<K, V> implements RListMultimapReactive<K, V> {
+public class RedissonListMultimapReactive<K, V> {
 
+    private final CommandReactiveExecutor commandExecutor;
+    private final RedissonListMultimap<K, V> instance;
+    
     public RedissonListMultimapReactive(CommandReactiveExecutor commandExecutor, String name) {
-        super(new RedissonListMultimap<K, V>(commandExecutor, name), commandExecutor, name);
+        this.instance = new RedissonListMultimap<K, V>(commandExecutor, name);
+        this.commandExecutor = commandExecutor;
     }
 
     public RedissonListMultimapReactive(Codec codec, CommandReactiveExecutor commandExecutor, String name) {
-        super(new RedissonListMultimap<K, V>(codec, commandExecutor, name), codec, commandExecutor, name);
+        this.instance = new RedissonListMultimap<K, V>(codec, commandExecutor, name);
+        this.commandExecutor = commandExecutor;
     }
 
-    @Override
     public RListReactive<V> get(K key) {
-        RList<V> list = ((RListMultimap<K, V>)instance).get(key);
-        return new RedissonListReactive<V>(codec, commandExecutor, list.getName(), list);
-    }
-
-    @Override
-    public Publisher<List<V>> getAll(final K key) {
-        return reactive(new Supplier<RFuture<List<V>>>() {
-            @Override
-            public RFuture<List<V>> get() {
-                return (RFuture<List<V>>)(Object)((RListMultimap<K, V>)instance).getAllAsync(key);
-            }
-        });
-    }
-
-    @Override
-    public Publisher<List<V>> removeAll(final Object key) {
-        return reactive(new Supplier<RFuture<List<V>>>() {
-            @Override
-            public RFuture<List<V>> get() {
-                return (RFuture<List<V>>)(Object)((RListMultimap<K, V>)instance).removeAllAsync(key);
-            }
-        });
-    }
-
-    @Override
-    public Publisher<List<V>> replaceValues(final K key, final Iterable<? extends V> values) {
-        return reactive(new Supplier<RFuture<List<V>>>() {
-            @Override
-            public RFuture<List<V>> get() {
-                return (RFuture<List<V>>)(Object)((RListMultimap<K, V>)instance).replaceValuesAsync(key, values);
-            }
-        });
+        RList<V> list = ((RListMultimap<K, V>) instance).get(key);
+        return ReactiveProxyBuilder.create(commandExecutor, instance, 
+                new RedissonListReactive<V>(instance.getCodec(), commandExecutor, list.getName()), RListReactive.class);
     }
 
 }

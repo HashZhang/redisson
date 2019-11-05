@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 import org.redisson.Redisson;
 import org.redisson.SlotCallback;
@@ -55,14 +56,7 @@ import org.redisson.client.protocol.RedisStrictCommand;
 import org.redisson.client.protocol.convertor.BooleanReplayConvertor;
 import org.redisson.client.protocol.convertor.DoubleReplayConvertor;
 import org.redisson.client.protocol.convertor.VoidReplayConvertor;
-import org.redisson.client.protocol.decoder.ListMultiDecoder;
-import org.redisson.client.protocol.decoder.ListScanResult;
-import org.redisson.client.protocol.decoder.ListScanResultReplayDecoder;
-import org.redisson.client.protocol.decoder.LongMultiDecoder;
-import org.redisson.client.protocol.decoder.MapScanResult;
-import org.redisson.client.protocol.decoder.ObjectListReplayDecoder;
-import org.redisson.client.protocol.decoder.ObjectSetReplayDecoder;
-import org.redisson.client.protocol.decoder.TimeLongObjectDecoder;
+import org.redisson.client.protocol.decoder.*;
 import org.redisson.command.CommandAsyncService;
 import org.redisson.command.CommandBatchService;
 import org.redisson.connection.MasterSlaveEntry;
@@ -273,20 +267,20 @@ public class RedissonConnection extends AbstractRedisConnection {
         final AtomicReference<Throwable> failed = new AtomicReference<Throwable>();
         final AtomicLong count = new AtomicLong();
         final AtomicLong executed = new AtomicLong(range2key.size());
-        FutureListener<List<?>> listener = new FutureListener<List<?>>() {
+        BiConsumer<List<?>, Throwable> listener = new BiConsumer<List<?>, Throwable>() {
             @Override
-            public void operationComplete(Future<List<?>> future) throws Exception {
-                if (future.isSuccess()) {
-                    List<Long> result = (List<Long>) future.get();
+            public void accept(List<?> r, Throwable u) {
+                if (u == null) {    
+                    List<Long> result = (List<Long>) r;
                     for (Long res : result) {
                         if (res != null) {
                             count.addAndGet(res);
                         }
                     }
                 } else {
-                    failed.set(future.cause());
+                    failed.set(u);
                 }
-
+                
                 checkExecution(result, failed, count, executed);
             }
         };
@@ -298,7 +292,7 @@ public class RedissonConnection extends AbstractRedisConnection {
             }
 
             RFuture<List<?>> future = es.executeAsync();
-            future.addListener(listener);
+            future.onComplete(listener);
         }
 
         return result;
@@ -326,7 +320,7 @@ public class RedissonConnection extends AbstractRedisConnection {
         }
 
         Set<byte[]> results = new HashSet<byte[]>();
-        RFuture<Set<byte[]>> f = (RFuture<Set<byte[]>>)(Object)(executorService.readAllAsync(results, KEYS, pattern));
+        RFuture<Set<byte[]>> f = (RFuture<Set<byte[]>>)(Object)(executorService.readAllAsync(results, ByteArrayCodec.INSTANCE, KEYS, pattern));
         return sync(f);
     }
 
@@ -1128,7 +1122,7 @@ public class RedissonConnection extends AbstractRedisConnection {
         return read(key, ByteArrayCodec.INSTANCE, ZREVRANGE, key, start, end);
     }
 
-    private static final RedisCommand<Set<Tuple>> ZREVRANGE_ENTRY = new RedisCommand<Set<Tuple>>("ZRANGE", new ScoredSortedSetReplayDecoder());
+    private static final RedisCommand<Set<Tuple>> ZREVRANGE_ENTRY = new RedisCommand<Set<Tuple>>("ZREVRANGE", new ScoredSortedSetReplayDecoder());
     
     @Override
     public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
@@ -1303,7 +1297,7 @@ public class RedissonConnection extends AbstractRedisConnection {
         return write(destKey, StringCodec.INSTANCE, ZINTERSTORE, args.toArray());
     }
 
-    private static final RedisCommand<ListScanResult<Object>> ZSCAN = new RedisCommand<ListScanResult<Object>>("ZSCAN", new ListMultiDecoder(new LongMultiDecoder(), new ScoredSortedListReplayDecoder(), new ListScanResultReplayDecoder()));
+    private static final RedisCommand<ListScanResult<Object>> ZSCAN = new RedisCommand<>("ZSCAN", new ListMultiDecoder2(new ListScanResultReplayDecoder(), new ScoredSortedListReplayDecoder()));
     
     @Override
     public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
@@ -1745,14 +1739,17 @@ public class RedissonConnection extends AbstractRedisConnection {
         sync(f);
     }
 
+    private static final RedisStrictCommand<Properties> INFO_DEFAULT = new RedisStrictCommand<Properties>("INFO", "DEFAULT", new PropertiesDecoder());
+    private static final RedisStrictCommand<Properties> INFO = new RedisStrictCommand<Properties>("INFO", new PropertiesDecoder());
+    
     @Override
     public Properties info() {
-        throw new UnsupportedOperationException();
+        return read(null, StringCodec.INSTANCE, INFO_DEFAULT);
     }
 
     @Override
     public Properties info(String section) {
-        throw new UnsupportedOperationException();
+        return read(null, StringCodec.INSTANCE, INFO, section);
     }
 
     @Override
@@ -1767,17 +1764,17 @@ public class RedissonConnection extends AbstractRedisConnection {
 
     @Override
     public List<String> getConfig(String pattern) {
-        throw new UnsupportedOperationException();
+        return read(null, StringCodec.INSTANCE, RedisCommands.CONFIG_GET, pattern);
     }
 
     @Override
     public void setConfig(String param, String value) {
-        throw new UnsupportedOperationException();
+        write(null, StringCodec.INSTANCE, RedisCommands.CONFIG_SET, param, value);
     }
 
     @Override
     public void resetConfigStats() {
-        throw new UnsupportedOperationException();
+        write(null, StringCodec.INSTANCE, RedisCommands.CONFIG_RESETSTAT);
     }
 
     private static final RedisStrictCommand<Long> TIME = new RedisStrictCommand<Long>("TIME", new TimeLongObjectDecoder());

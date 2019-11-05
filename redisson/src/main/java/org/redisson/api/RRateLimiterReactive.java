@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ package org.redisson.api;
 
 import java.util.concurrent.TimeUnit;
 
-import org.reactivestreams.Publisher;
+import reactor.core.publisher.Mono;
 
 /**
+ * Reactive interface for Rate Limiter object
  * 
  * @author Nikita Koksharov
  *
@@ -33,9 +34,10 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * @param rate - rate
      * @param rateInterval - rate time interval
      * @param rateIntervalUnit - rate time interval unit
-     * @return
+     * @return {@code true} if rate was set and {@code false}
+     *         otherwise
      */
-    Publisher<Boolean> trySetRate(RateType mode, long rate, long rateInterval, RateIntervalUnit rateIntervalUnit);
+    Mono<Boolean> trySetRate(RateType mode, long rate, long rateInterval, RateIntervalUnit rateIntervalUnit);
 
     /**
      * Acquires a permit only if one is available at the
@@ -51,7 +53,7 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * @return {@code true} if a permit was acquired and {@code false}
      *         otherwise
      */
-    Publisher<Boolean> tryAcquire();
+    Mono<Boolean> tryAcquire();
     
     /**
      * Acquires the given number of <code>permits</code> only if all are available at the
@@ -68,7 +70,7 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * @return {@code true} if a permit was acquired and {@code false}
      *         otherwise
      */
-    Publisher<Boolean> tryAcquire(long permits);
+    Mono<Boolean> tryAcquire(long permits);
     
     /**
      * Acquires a permit from this RateLimiter, blocking until one is available.
@@ -76,8 +78,9 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * <p>Acquires a permit, if one is available and returns immediately,
      * reducing the number of available permits by one.
      * 
+     * @return void
      */
-    Publisher<Void> acquire();
+    Mono<Void> acquire();
     
     /**
      * Acquires a specified <code>permits</code> from this RateLimiter, 
@@ -87,9 +90,10 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * and returns immediately, reducing the number of available permits 
      * by the given amount.
      * 
-     * @param permits
+     * @param permits the number of permits to acquire
+     * @return void
      */
-    Publisher<Void> acquire(long permits);
+    Mono<Void> acquire(long permits);
     
     /**
      * Acquires a permit from this RateLimiter, if one becomes available
@@ -114,7 +118,7 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * @return {@code true} if a permit was acquired and {@code false}
      *         if the waiting time elapsed before a permit was acquired
      */
-    Publisher<Boolean> tryAcquire(long timeout, TimeUnit unit);
+    Mono<Boolean> tryAcquire(long timeout, TimeUnit unit);
     
     /**
      * Acquires the given number of <code>permits</code> only if all are available
@@ -139,6 +143,6 @@ public interface RRateLimiterReactive extends RObjectReactive {
      * @return {@code true} if a permit was acquired and {@code false}
      *         if the waiting time elapsed before a permit was acquired
      */
-    Publisher<Boolean> tryAcquire(long permits, long timeout, TimeUnit unit);
+    Mono<Boolean> tryAcquire(long permits, long timeout, TimeUnit unit);
     
 }

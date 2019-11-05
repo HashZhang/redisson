@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
     /**
      * Redis 'slave' node minimum idle connection amount for <b>each</b> slave node
      */
-    private int slaveConnectionMinimumIdleSize = 32;
+    private int slaveConnectionMinimumIdleSize = 24;
 
     /**
      * Redis 'slave' node maximum connection pool size for <b>each</b> slave node
@@ -43,12 +43,12 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
 
     private int failedSlaveReconnectionInterval = 3000;
     
-    private int failedSlaveCheckInterval = 60000;
+    private int failedSlaveCheckInterval = 180000;
     
     /**
      * Redis 'master' node minimum idle connection amount for <b>each</b> slave node
      */
-    private int masterConnectionMinimumIdleSize = 32;
+    private int masterConnectionMinimumIdleSize = 24;
 
     /**
      * Redis 'master' node maximum connection pool size
@@ -102,7 +102,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
      */
     public T setSlaveConnectionPoolSize(int slaveConnectionPoolSize) {
         this.slaveConnectionPoolSize = slaveConnectionPoolSize;
-        return (T)this;
+        return (T) this;
     }
     public int getSlaveConnectionPoolSize() {
         return slaveConnectionPoolSize;
@@ -136,7 +136,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
      * when the time interval from the moment of first Redis command execution failure
      * on this server reaches <code>slaveFailsInterval</code> value.
      * <p>
-     * Default is <code>60000</code>
+     * Default is <code>180000</code>
      *
      * @param slaveFailsInterval - time interval in milliseconds
      * @return config
@@ -162,7 +162,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
      */
     public T setMasterConnectionPoolSize(int masterConnectionPoolSize) {
         this.masterConnectionPoolSize = masterConnectionPoolSize;
-        return (T)this;
+        return (T) this;
     }
     public int getMasterConnectionPoolSize() {
         return masterConnectionPoolSize;
@@ -181,7 +181,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
      */
     public T setLoadBalancer(LoadBalancer loadBalancer) {
         this.loadBalancer = loadBalancer;
-        return (T)this;
+        return (T) this;
     }
     public LoadBalancer getLoadBalancer() {
         return loadBalancer;
@@ -203,7 +203,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
     }
 
     /**
-     * Redis 'slave' node maximum subscription (pub/sub) connection pool size for <b>each</b> slave node
+     * Maximum connection pool size for subscription (pub/sub) channels
      * <p>
      * Default is <code>50</code>
      * <p>
@@ -214,7 +214,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
      */
     public T setSubscriptionConnectionPoolSize(int subscriptionConnectionPoolSize) {
         this.subscriptionConnectionPoolSize = subscriptionConnectionPoolSize;
-        return (T)this;
+        return (T) this;
     }
     public int getSubscriptionConnectionPoolSize() {
         return subscriptionConnectionPoolSize;
@@ -222,7 +222,7 @@ public class BaseMasterSlaveServersConfig<T extends BaseMasterSlaveServersConfig
 
     
     /**
-     * Redis 'slave' node minimum idle connection amount for <b>each</b> slave node
+     * Minimum idle connection pool size for subscription (pub/sub) channels
      * <p>
      * Default is <code>10</code>
      * <p>

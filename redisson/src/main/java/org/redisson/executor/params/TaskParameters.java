@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,26 @@ public class TaskParameters implements Serializable {
     
     private String className;
     private byte[] classBody;
+    private byte[] lambdaBody;
     private byte[] state;
     private String requestId;
 
     public TaskParameters() {
     }
     
-    public TaskParameters(String className, byte[] classBody, byte[] state) {
+    public TaskParameters(String className, byte[] classBody, byte[] lambdaBody, byte[] state) {
         super();
         this.className = className;
         this.classBody = classBody;
         this.state = state;
+        this.lambdaBody = lambdaBody;
+    }
+    
+    public byte[] getLambdaBody() {
+        return lambdaBody;
+    }
+    public void setLambdaBody(byte[] lambdaBody) {
+        this.lambdaBody = lambdaBody;
     }
 
     public String getClassName() {

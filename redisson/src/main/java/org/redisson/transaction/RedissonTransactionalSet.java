@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.redisson.RedissonSet;
+import org.redisson.api.RCountDownLatch;
 import org.redisson.api.RFuture;
+import org.redisson.api.RLock;
+import org.redisson.api.RPermitExpirableSemaphore;
+import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RSemaphore;
 import org.redisson.api.SortOrder;
 import org.redisson.api.mapreduce.RCollectionMapReduce;
 import org.redisson.client.RedisClient;
@@ -98,6 +103,36 @@ public class RedissonTransactionalSet<V> extends RedissonSet<V> {
     public ListScanResult<Object> scanIterator(String name, RedisClient client, long startPos, String pattern, int count) {
         checkState();
         return transactionalSet.scanIterator(name, client, startPos, pattern, count);
+    }
+    
+    @Override
+    public RLock getFairLock(V value) {
+        throw new UnsupportedOperationException("getFairLock method is not supported in transaction");
+    }
+    
+    @Override
+    public RCountDownLatch getCountDownLatch(V value) {
+        throw new UnsupportedOperationException("getCountDownLatch method is not supported in transaction");
+    }
+    
+    @Override
+    public RPermitExpirableSemaphore getPermitExpirableSemaphore(V value) {
+        throw new UnsupportedOperationException("getPermitExpirableSemaphore method is not supported in transaction");
+    }
+    
+    @Override
+    public RSemaphore getSemaphore(V value) {
+        throw new UnsupportedOperationException("getSemaphore method is not supported in transaction");
+    }
+    
+    @Override
+    public RLock getLock(V value) {
+        throw new UnsupportedOperationException("getLock method is not supported in transaction");
+    }
+    
+    @Override
+    public RReadWriteLock getReadWriteLock(V value) {
+        throw new UnsupportedOperationException("getReadWriteLock method is not supported in transaction");
     }
 
     @Override
@@ -202,7 +237,37 @@ public class RedissonTransactionalSet<V> extends RedissonSet<V> {
         checkState();
         return transactionalSet.readSortAsync(byPattern, getPatterns, order, offset, count);
     }
-    
+
+    @Override
+    public RFuture<Set<V>> readSortAlphaAsync(SortOrder order) {
+        return transactionalSet.readSortAlphaAsync(order);
+    }
+
+    @Override
+    public RFuture<Set<V>> readSortAlphaAsync(SortOrder order, int offset, int count) {
+        return transactionalSet.readSortAlphaAsync(order, offset, count);
+    }
+
+    @Override
+    public RFuture<Set<V>> readSortAlphaAsync(String byPattern, SortOrder order) {
+        return transactionalSet.readSortAlphaAsync(byPattern, order);
+    }
+
+    @Override
+    public RFuture<Set<V>> readSortAlphaAsync(String byPattern, SortOrder order, int offset, int count) {
+        return transactionalSet.readSortAlphaAsync(byPattern, order, offset, count);
+    }
+
+    @Override
+    public <T> RFuture<Collection<T>> readSortAlphaAsync(String byPattern, List<String> getPatterns, SortOrder order) {
+        return transactionalSet.readSortAlphaAsync(byPattern, getPatterns, order);
+    }
+
+    @Override
+    public <T> RFuture<Collection<T>> readSortAlphaAsync(String byPattern, List<String> getPatterns, SortOrder order, int offset, int count) {
+        return transactionalSet.readSortAlphaAsync(byPattern, getPatterns, order, offset, count);
+    }
+
     @Override
     public RFuture<Integer> sortToAsync(String destName, String byPattern, List<String> getPatterns, SortOrder order, int offset, int count) {
         checkState();

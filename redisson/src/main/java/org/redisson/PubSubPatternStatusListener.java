@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.redisson;
 
 import org.redisson.api.listener.PatternStatusListener;
-import org.redisson.client.ChannelName;
 import org.redisson.client.RedisPubSubListener;
 import org.redisson.client.protocol.pubsub.PubSubType;
 
@@ -24,9 +23,8 @@ import org.redisson.client.protocol.pubsub.PubSubType;
  *
  * @author Nikita Koksharov
  *
- * @param <V> value
  */
-public class PubSubPatternStatusListener<V> implements RedisPubSubListener<V> {
+public class PubSubPatternStatusListener implements RedisPubSubListener<Object> {
 
     private final PatternStatusListener listener;
     private final String name;
@@ -42,6 +40,7 @@ public class PubSubPatternStatusListener<V> implements RedisPubSubListener<V> {
     }
 
     @Override
+    @SuppressWarnings("AvoidInlineConditionals")
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -67,11 +66,11 @@ public class PubSubPatternStatusListener<V> implements RedisPubSubListener<V> {
     }
 
     @Override
-    public void onMessage(CharSequence channel, V message) {
+    public void onMessage(CharSequence channel, Object message) {
     }
 
     @Override
-    public void onPatternMessage(CharSequence pattern, CharSequence channel, V message) {
+    public void onPatternMessage(CharSequence pattern, CharSequence channel, Object message) {
     }
 
     @Override

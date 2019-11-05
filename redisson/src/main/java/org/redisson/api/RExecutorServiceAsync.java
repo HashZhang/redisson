@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,19 @@ package org.redisson.api;
 import java.util.concurrent.Callable;
 
 /**
- * Redis based implementation of {@link java.util.concurrent.ExecutorService}
+ * Distributed async implementation of {@link java.util.concurrent.ExecutorService}
  * 
  * @author Nikita Koksharov
  *
  */
 public interface RExecutorServiceAsync {
+
+    /**
+     * Returns amount of tasks awaiting for execution and/or currently in execution.
+     *
+     * @return amount of tasks
+     */
+    RFuture<Integer> getTaskCountAsync();
 
     /**
      * Deletes executor request queue and state objects
@@ -48,7 +55,7 @@ public interface RExecutorServiceAsync {
      * @param tasks - tasks to execute
      * @return Future object
      */
-    RExecutorBatchFuture submitAsync(Callable<?> ...tasks);
+    RExecutorBatchFuture submitAsync(Callable<?>...tasks);
     
     /**
      * Submits task for execution asynchronously
@@ -65,6 +72,6 @@ public interface RExecutorServiceAsync {
      * @param tasks - tasks to execute
      * @return Future object
      */
-    RExecutorBatchFuture submitAsync(Runnable ...tasks);
+    RExecutorBatchFuture submitAsync(Runnable...tasks);
     
 }

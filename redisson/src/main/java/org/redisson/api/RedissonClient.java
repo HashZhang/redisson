@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -441,7 +441,7 @@ public interface RedissonClient {
     RPermitExpirableSemaphore getPermitExpirableSemaphore(String name);
 
     /**
-     * Returns lock instance by name.
+     * Returns Lock instance by name.
      * <p>
      * Implements a <b>non-fair</b> locking so doesn't guarantees an acquire order by threads.
      *
@@ -451,7 +451,23 @@ public interface RedissonClient {
     RLock getLock(String name);
 
     /**
-     * Returns lock instance by name.
+     * Returns MultiLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return MultiLock object
+     */
+    RLock getMultiLock(RLock... locks);
+    
+    /**
+     * Returns RedLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return RedLock object
+     */
+    RLock getRedLock(RLock... locks);
+    
+    /**
+     * Returns Lock instance by name.
      * <p>
      * Implements a <b>fair</b> locking so it guarantees an acquire order by threads.
      * 
@@ -461,7 +477,7 @@ public interface RedissonClient {
     RLock getFairLock(String name);
     
     /**
-     * Returns readWriteLock instance by name.
+     * Returns ReadWriteLock instance by name.
      *
      * @param name - name of object
      * @return Lock object
@@ -545,22 +561,20 @@ public interface RedissonClient {
     /**
      * Returns topic instance by name.
      * 
-     * @param <M> type of message
      * @param name - name of object
      * @return Topic object
      */
-    <M> RTopic<M> getTopic(String name);
+    RTopic getTopic(String name);
 
     /**
      * Returns topic instance by name
      * using provided codec for messages.
      *
-     * @param <M> type of message
      * @param name - name of object
      * @param codec - codec for message
      * @return Topic object
      */
-    <M> RTopic<M> getTopic(String name, Codec codec);
+    RTopic getTopic(String name, Codec codec);
 
     /**
      * Returns topic instance satisfies by pattern name.
@@ -570,11 +584,10 @@ public interface RedissonClient {
      *    h*llo subscribes to hllo and heeeello
      *    h[ae]llo subscribes to hello and hallo, but not hillo
      * 
-     * @param <M> type of message
      * @param pattern of the topic
      * @return PatterTopic object
      */
-    <M> RPatternTopic<M> getPatternTopic(String pattern);
+    RPatternTopic getPatternTopic(String pattern);
 
     /**
      * Returns topic instance satisfies by pattern name
@@ -585,12 +598,11 @@ public interface RedissonClient {
      *    h*llo subscribes to hllo and heeeello
      *    h[ae]llo subscribes to hello and hallo, but not hillo
      * 
-     * @param <M> type of message
      * @param pattern of the topic
      * @param codec - codec for message
      * @return PatterTopic object
      */
-    <M> RPatternTopic<M> getPatternTopic(String pattern, Codec codec);
+    RPatternTopic getPatternTopic(String pattern, Codec codec);
 
     /**
      * Returns unbounded queue instance by name.
@@ -623,6 +635,25 @@ public interface RedissonClient {
      * @return Queue object
      */
     <V> RQueue<V> getQueue(String name, Codec codec);
+    
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @return RingBuffer object
+     */
+    <V> RRingBuffer<V> getRingBuffer(String name);
+    
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @param codec - codec for values
+     * @return RingBuffer object
+     */
+    <V> RRingBuffer<V> getRingBuffer(String name, Codec codec);
 
     /**
      * Returns priority unbounded queue instance by name.
@@ -866,6 +897,14 @@ public interface RedissonClient {
      * @return Script object
      */
     RScript getScript();
+    
+    /**
+     * Returns script operations object using provided codec.
+     * 
+     * @param codec - codec for params and result
+     * @return Script object
+     */
+    RScript getScript(Codec codec);
 
     /**
      * Returns ScheduledExecutorService by name
@@ -974,11 +1013,14 @@ public interface RedissonClient {
      */
     RBatch createBatch(BatchOptions options);
 
-    /*
-     * Use #createBatch(BatchOptions)
-     * 
+    /**
+     * Creates batch object which could be executed later 
+     * with collected group of commands in pipeline mode.
+     * <p>
+     * See <a href="http://redis.io/topics/pipelining">http://redis.io/topics/pipelining</a>
+     *
+     * @return Batch object
      */
-    @Deprecated
     RBatch createBatch();
     
     /**
@@ -1056,5 +1098,12 @@ public interface RedissonClient {
      * or was shutdown {@link #isShutdown()} already.
      */
     boolean isShuttingDown();
+
+    /**
+     * Returns id of this Redisson instance
+     * 
+     * @return id
+     */
+    String getId();
 
 }

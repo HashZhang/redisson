@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.redisson.api.map.MapWriter;
 import org.redisson.api.mapreduce.RMapReduce;
 
 /**
- * Distributed and concurrent implementation of {@link java.util.concurrent.ConcurrentMap}
+ * Distributed implementation of {@link java.util.concurrent.ConcurrentMap}
  * and {@link java.util.Map}
  *
  * This map doesn't allow to store <code>null</code> as key or value.
@@ -103,6 +103,38 @@ public interface RMap<K, V> extends ConcurrentMap<K, V>, RExpirable, RMapAsync<K
      * @return MapReduce instance
      */
     <KOut, VOut> RMapReduce<K, V, KOut, VOut> mapReduce();
+
+    /**
+     * Returns <code>RCountDownLatch</code> instance associated with key
+     * 
+     * @param key - map key
+     * @return countdownlatch
+     */
+    RCountDownLatch getCountDownLatch(K key);
+    
+    /**
+     * Returns <code>RPermitExpirableSemaphore</code> instance associated with key
+     * 
+     * @param key - map key
+     * @return permitExpirableSemaphore
+     */
+    RPermitExpirableSemaphore getPermitExpirableSemaphore(K key);
+
+    /**
+     * Returns <code>RSemaphore</code> instance associated with key
+     * 
+     * @param key - map key
+     * @return semaphore
+     */
+    RSemaphore getSemaphore(K key);
+    
+    /**
+     * Returns <code>RLock</code> instance associated with key
+     * 
+     * @param key - map key
+     * @return fairlock
+     */
+    RLock getFairLock(K key);
     
     /**
      * Returns <code>RReadWriteLock</code> instance associated with key
@@ -203,6 +235,18 @@ public interface RMap<K, V> extends ConcurrentMap<K, V>, RExpirable, RMapAsync<K
     void putAll(java.util.Map<? extends K, ? extends V> map);
     
     /**
+     * Associates the specified <code>value</code> with the specified <code>key</code>
+     * in batch. Batch inserted by chunks limited by <code>batchSize</code> amount 
+     * to avoid OOM and/or Redis response timeout error for map with big size. 
+     * <p>
+     * If {@link MapWriter} is defined then new map entries are stored in write-through mode. 
+     *
+     * @param map mappings to be stored in this map
+     * @param batchSize - map chunk size
+     */
+    void putAll(Map<? extends K, ? extends V> map, int batchSize);
+    
+    /**
      * Gets a map slice contained the mappings with defined <code>keys</code>
      * by one operation.
      * <p>
@@ -227,7 +271,7 @@ public interface RMap<K, V> extends ConcurrentMap<K, V>, RExpirable, RMapAsync<K
      * @param keys - map keys
      * @return the number of keys that were removed from the hash, not including specified but non existing keys
      */
-    long fastRemove(K ... keys);
+    long fastRemove(K... keys);
 
     /**
      * Associates the specified <code>value</code> with the specified <code>key</code>.

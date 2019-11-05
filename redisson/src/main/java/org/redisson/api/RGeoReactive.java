@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.redisson.api;
 import java.util.List;
 import java.util.Map;
 
-import org.reactivestreams.Publisher;
+import reactor.core.publisher.Mono;
 
 /**
- * Geospatial items holder.
+ * Geospatial items holder. Reactive interface.
  * 
  * @author Nikita Koksharov
  *
@@ -39,7 +39,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * not including elements already existing for which 
      * the score was updated
      */
-    Publisher<Long> add(double longitude, double latitude, V member);
+    Mono<Long> add(double longitude, double latitude, V member);
 
     /**
      * Adds geospatial members.
@@ -49,7 +49,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * not including elements already existing for which 
      * the score was updated
      */
-    Publisher<Long> add(GeoEntry... entries);
+    Mono<Long> add(GeoEntry... entries);
 
     /**
      * Returns distance between members in <code>GeoUnit</code> units.
@@ -59,7 +59,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoUnit - geo unit
      * @return distance
      */
-    Publisher<Double> dist(V firstMember, V secondMember, GeoUnit geoUnit);
+    Mono<Double> dist(V firstMember, V secondMember, GeoUnit geoUnit);
     
     /**
      * Returns 11 characters Geohash string mapped by defined member.
@@ -67,7 +67,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param members - objects
      * @return hash mapped by object
      */
-    Publisher<Map<V, String>> hash(V... members);
+    Mono<Map<V, String>> hash(V... members);
 
     /**
      * Returns geo-position mapped by defined member.
@@ -75,13 +75,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param members - objects
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> pos(V... members);
+    Mono<Map<V, GeoPosition>> pos(V... members);
     
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -89,13 +91,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoUnit - geo unit
      * @return list of objects
      */
-    Publisher<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit);
+    Mono<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit);
     
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -104,13 +108,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return list of objects
      */
-    Publisher<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
+    Mono<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -119,7 +125,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoOrder - order of result
      * @return list of objects
      */
-    Publisher<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
+    Mono<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
     
     /**
      * Returns the members of a sorted set, which are within the 
@@ -127,6 +133,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
      * and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -136,7 +144,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return list of objects
      */
-    Publisher<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<List<V>> radius(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
  
     /**
      * Returns the distance mapped by member, distance between member and the location. 
@@ -144,6 +152,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -151,7 +161,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoUnit - geo unit
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit);
+    Mono<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit);
 
     /**
      * Returns the distance mapped by member, distance between member and the location. 
@@ -159,6 +169,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units and limited by count.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -167,7 +179,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
+    Mono<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
     
     /**
      * Returns the distance mapped by member, distance between member and the location. 
@@ -175,6 +187,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -183,7 +197,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoOrder - order of result
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
+    Mono<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
     
     /**
      * Returns the distance mapped by member, distance between member and the location. 
@@ -192,6 +206,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
      * and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -201,7 +217,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<Map<V, Double>> radiusWithDistance(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
     
     /**
      * Returns the geo-position mapped by member. 
@@ -209,6 +225,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -216,7 +234,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoUnit - geo unit
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit);
 
     /**
      * Returns the geo-position mapped by member. 
@@ -224,6 +242,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -232,7 +252,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Returns the geo-position mapped by member. 
@@ -240,6 +260,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the center location 
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -248,7 +270,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoOrder - geo order
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
 
     /**
      * Returns the geo-position mapped by member. 
@@ -257,6 +279,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * and the maximum distance from the center (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
      * and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param longitude - longitude of object
      * @param latitude - latitude of object
@@ -266,26 +290,30 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
     
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the defined member location
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
      * @param geoUnit - geo unit
      * @return list of objects
      */
-    Publisher<List<V>> radius(V member, double radius, GeoUnit geoUnit);
+    Mono<List<V>> radius(V member, double radius, GeoUnit geoUnit);
 
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the defined member location
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -293,13 +321,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return list of objects
      */
-    Publisher<List<V>> radius(V member, double radius, GeoUnit geoUnit, int count);
+    Mono<List<V>> radius(V member, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the defined member location
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -307,13 +337,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoOrder - geo order
      * @return list of objects
      */
-    Publisher<List<V>> radius(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
+    Mono<List<V>> radius(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
 
     /**
      * Returns the members of a sorted set, which are within the 
      * borders of the area specified with the defined member location
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -322,7 +354,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return list of objects
      */
-    Publisher<List<V>> radius(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<List<V>> radius(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
     
     /**
      * Returns the distance mapped by member, distance between member and the defined member location. 
@@ -330,13 +362,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the defined member location 
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
      * @param geoUnit - geo unit
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit);
+    Mono<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit);
 
     /**
      * Returns the distance mapped by member, distance between member and the defined member location. 
@@ -344,6 +378,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the defined member location 
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -351,7 +387,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit, int count);
+    Mono<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Returns the distance mapped by member, distance between member and the defined member location. 
@@ -359,6 +395,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the defined member location 
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -366,7 +404,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoOrder - geo
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
+    Mono<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
 
     /**
      * Returns the distance mapped by member, distance between member and the defined member location. 
@@ -375,6 +413,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
      * and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -383,7 +423,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return distance mapped by object
      */
-    Publisher<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<Map<V, Double>> radiusWithDistance(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
     
     /**
      * Returns the geo-position mapped by member. 
@@ -391,13 +431,15 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the defined member location 
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units.
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
      * @param geoUnit - geo unit
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit);
 
     /**
      * Returns the geo-position mapped by member. 
@@ -405,6 +447,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the defined member location 
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -412,7 +456,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit, int count);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Returns the geo-position mapped by member. 
@@ -420,6 +464,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * borders of the area specified with the defined member location 
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -427,7 +473,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoOrder - geo order
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder);
 
     /**
      * Returns the geo-position mapped by member. 
@@ -436,6 +482,8 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * and the maximum distance from the defined member location (the radius) 
      * in <code>GeoUnit</code> units with <code>GeoOrder</code>
      * and limited by count
+     * <p>
+     * Requires <b>Redis 3.2.10 and higher.</b>
      * 
      * @param member - object
      * @param radius - radius in geo units
@@ -444,7 +492,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return geo position mapped by object
      */
-    Publisher<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<Map<V, GeoPosition>> radiusWithPosition(V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
 
     /**
      * Finds the members of a sorted set, which are within the 
@@ -460,7 +508,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoUnit - geo unit
      * @return length of result
      */
-    Publisher<Long> radiusStoreTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit);
+    Mono<Long> radiusStoreTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit);
 
     /**
      * Finds the members of a sorted set, which are within the 
@@ -477,7 +525,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return length of result
      */
-    Publisher<Long> radiusStoreTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
+    Mono<Long> radiusStoreTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Finds the members of a sorted set, which are within the 
@@ -496,7 +544,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return length of result
      */
-    Publisher<Long> radiusStoreTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<Long> radiusStoreTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
 
     /**
      * Finds the members of a sorted set, which are within the 
@@ -511,7 +559,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param geoUnit - geo unit
      * @return length of result
      */
-    Publisher<Long> radiusStoreTo(String destName, V member, double radius, GeoUnit geoUnit);
+    Mono<Long> radiusStoreTo(String destName, V member, double radius, GeoUnit geoUnit);
 
     /**
      * Finds the members of a sorted set, which are within the 
@@ -527,7 +575,7 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return length of result
      */
-    Publisher<Long> radiusStoreTo(String destName, V member, double radius, GeoUnit geoUnit, int count);
+    Mono<Long> radiusStoreTo(String destName, V member, double radius, GeoUnit geoUnit, int count);
 
     /**
      * Finds the members of a sorted set, which are within the 
@@ -544,6 +592,113 @@ public interface RGeoReactive<V> extends RScoredSortedSetReactive<V> {
      * @param count - result limit
      * @return length of result
      */
-    Publisher<Long> radiusStoreTo(String destName, V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+    Mono<Long> radiusStoreTo(String destName, V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
 
+    /**
+     * Finds the members of a sorted set, which are within the 
+     * borders of the area specified with the center location 
+     * and the maximum distance from the center (the radius) 
+     * in <code>GeoUnit</code> units.
+     * <p> 
+     * Stores result to <code>destName</code> sorted by distance.
+     * 
+     * @param destName - Geo object destination
+     * @param longitude - longitude of object
+     * @param latitude - latitude of object
+     * @param radius - radius in geo units
+     * @param geoUnit - geo unit
+     * @return length of result
+     */
+    Mono<Long> radiusStoreSortedTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit);
+
+    /**
+     * Finds the members of a sorted set, which are within the 
+     * borders of the area specified with the center location 
+     * and the maximum distance from the center (the radius) 
+     * in <code>GeoUnit</code> units and limited by count
+     * <p> 
+     * Stores result to <code>destName</code> sorted by distance.
+     * 
+     * @param destName - Geo object destination
+     * @param longitude - longitude of object
+     * @param latitude - latitude of object
+     * @param radius - radius in geo units
+     * @param geoUnit - geo unit
+     * @param count - result limit
+     * @return length of result
+     */
+    Mono<Long> radiusStoreSortedTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit, int count);
+
+    /**
+     * Finds the members of a sorted set, which are within the 
+     * borders of the area specified with the center location 
+     * and the maximum distance from the center (the radius) 
+     * in <code>GeoUnit</code> units with <code>GeoOrder</code> 
+     * and limited by count.
+     * <p>
+     * Stores result to <code>destName</code> sorted by distance.
+     * 
+     * @param destName - Geo object destination
+     * @param longitude - longitude of object
+     * @param latitude - latitude of object
+     * @param radius - radius in geo units
+     * @param geoUnit - geo unit
+     * @param geoOrder - order of result
+     * @param count - result limit
+     * @return length of result
+     */
+    Mono<Long> radiusStoreSortedTo(String destName, double longitude, double latitude, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+
+    /**
+     * Finds the members of a sorted set, which are within the 
+     * borders of the area specified with the defined member location
+     * and the maximum distance from the defined member location (the radius) 
+     * in <code>GeoUnit</code> units. 
+     * <p>
+     * Stores result to <code>destName</code> sorted by distance.
+     * 
+     * @param destName - Geo object destination
+     * @param member - object
+     * @param radius - radius in geo units
+     * @param geoUnit - geo unit
+     * @return length of result
+     */
+    Mono<Long> radiusStoreSortedTo(String destName, V member, double radius, GeoUnit geoUnit);
+
+    /**
+     * Finds the members of a sorted set, which are within the 
+     * borders of the area specified with the defined member location
+     * and the maximum distance from the defined member location (the radius) 
+     * in <code>GeoUnit</code> units and limited by count.
+     * <p>
+     * Stores result to <code>destName</code> sorted by distance.
+     * 
+     * @param destName - Geo object destination
+     * @param member - object
+     * @param radius - radius in geo units
+     * @param geoUnit - geo unit
+     * @param count - result limit
+     * @return length of result
+     */
+    Mono<Long> radiusStoreSortedTo(String destName, V member, double radius, GeoUnit geoUnit, int count);
+
+    /**
+     * Finds the members of a sorted set, which are within the 
+     * borders of the area specified with the defined member location 
+     * and the maximum distance from the defined member location (the radius) 
+     * in <code>GeoUnit</code> units with <code>GeoOrder</code>
+     * <p> 
+     * Stores result to <code>destName</code> sorted by distance.
+     * 
+     * @param destName - Geo object destination
+     * @param member - object
+     * @param radius - radius in geo units
+     * @param geoUnit - geo unit
+     * @param geoOrder - geo order
+     * @param count - result limit
+     * @return length of result
+     */
+    Mono<Long> radiusStoreSortedTo(String destName, V member, double radius, GeoUnit geoUnit, GeoOrder geoOrder, int count);
+
+    
 }

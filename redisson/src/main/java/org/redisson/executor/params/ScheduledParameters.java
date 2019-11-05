@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ public class ScheduledParameters extends TaskParameters {
     public ScheduledParameters() {
     }
     
-    public ScheduledParameters(String className, byte[] classBody, byte[] state, long startTime) {
-        super(className, classBody, state);
+    public ScheduledParameters(String className, byte[] classBody, byte[] lambdaBody, byte[] state, long startTime) {
+        super(className, classBody, lambdaBody, state);
         this.startTime = startTime;
     }
 

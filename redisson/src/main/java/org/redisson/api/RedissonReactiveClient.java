@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,43 @@ package org.redisson.api;
 import java.util.List;
 
 import org.redisson.client.codec.Codec;
-import org.redisson.codec.ReferenceCodecProvider;
 import org.redisson.config.Config;
 
 /**
  * Main Redisson interface for access
- * to all redisson objects with reactive interface.
+ * to all redisson objects with Reactive interface.
  *
  * @author Nikita Koksharov
  *
  */
 public interface RedissonReactiveClient {
 
+    /**
+     * Returns stream instance by <code>name</code>
+     * <p>
+     * Requires <b>Redis 5.0.0 and higher.</b>
+     * 
+     * @param <K> type of key
+     * @param <V> type of value
+     * @param name of stream
+     * @return RStream object
+     */
+    <K, V> RStreamReactive<K, V> getStream(String name);
+    
+    /**
+     * Returns stream instance by <code>name</code>
+     * using provided <code>codec</code> for entries.
+     * <p>
+     * Requires <b>Redis 5.0.0 and higher.</b>
+     * 
+     * @param <K> type of key
+     * @param <V> type of value
+     * @param name - name of stream
+     * @param codec - codec for entry
+     * @return RStream object
+     */
+    <K, V> RStreamReactive<K, V> getStream(String name, Codec codec);
+    
     /**
      * Returns geospatial items holder instance by <code>name</code>.
      * 
@@ -102,6 +127,22 @@ public interface RedissonReactiveClient {
      * @return Lock object
      */
     RLockReactive getLock(String name);
+    
+    /**
+     * Returns MultiLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return MultiLock object
+     */
+    RLockReactive getMultiLock(RLock... locks);
+    
+    /**
+     * Returns RedLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return RedLock object
+     */
+    RLockReactive getRedLock(RLock... locks);
     
     /**
      * Returns set-based cache instance by <code>name</code>.
@@ -401,22 +442,20 @@ public interface RedissonReactiveClient {
     /**
      * Returns topic instance by name.
      *
-     * @param <M> type of message
      * @param name - name of object
      * @return Topic object
      */
-    <M> RTopicReactive<M> getTopic(String name);
+    RTopicReactive getTopic(String name);
 
     /**
      * Returns topic instance by name
      * using provided codec for messages.
      *
-     * @param <M> type of message
      * @param name - name of object
      * @param codec - codec for message
      * @return Topic object
      */
-    <M> RTopicReactive<M> getTopic(String name, Codec codec);
+    RTopicReactive getTopic(String name, Codec codec);
 
     /**
      * Returns topic instance satisfies by pattern name.
@@ -426,11 +465,10 @@ public interface RedissonReactiveClient {
      *    h*llo subscribes to hllo and heeeello
      *    h[ae]llo subscribes to hello and hallo, but not hillo
      *
-     * @param <M> type of message
      * @param pattern of the topic
      * @return PatternTopic object
      */
-    <M> RPatternTopicReactive<M> getPatternTopic(String pattern);
+    RPatternTopicReactive getPatternTopic(String pattern);
 
     /**
      * Returns topic instance satisfies by pattern name
@@ -441,12 +479,11 @@ public interface RedissonReactiveClient {
      *    h*llo subscribes to hllo and heeeello
      *    h[ae]llo subscribes to hello and hallo, but not hillo
      *
-     * @param <M> type of message
      * @param pattern of the topic
      * @param codec - codec for message
      * @return PatternTopic object
      */
-    <M> RPatternTopicReactive<M> getPatternTopic(String pattern, Codec codec);
+    RPatternTopicReactive getPatternTopic(String pattern, Codec codec);
 
     /**
      * Returns queue instance by name.
@@ -468,6 +505,25 @@ public interface RedissonReactiveClient {
      */
     <V> RQueueReactive<V> getQueue(String name, Codec codec);
 
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @return RingBuffer object
+     */
+    <V> RRingBufferReactive<V> getRingBuffer(String name);
+    
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @param codec - codec for values
+     * @return RingBuffer object
+     */
+    <V> RRingBufferReactive<V> getRingBuffer(String name, Codec codec);
+    
     /**
      * Returns blocking queue instance by name.
      * 
@@ -545,6 +601,40 @@ public interface RedissonReactiveClient {
     RAtomicDoubleReactive getAtomicDouble(String name);
 
     /**
+     * Returns object for remote operations prefixed with the default name (redisson_remote_service)
+     * 
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService();
+    
+    /**
+     * Returns object for remote operations prefixed with the default name (redisson_remote_service)
+     * and uses provided codec for method arguments and result.
+     * 
+     * @param codec - codec for response and request
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService(Codec codec);
+
+    /**
+     * Returns object for remote operations prefixed with the specified name
+     *
+     * @param name - the name used as the Redis key prefix for the services
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService(String name);
+    
+    /**
+     * Returns object for remote operations prefixed with the specified name
+     * and uses provided codec for method arguments and result.
+     *
+     * @param name - the name used as the Redis key prefix for the services
+     * @param codec - codec for response and request
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService(String name, Codec codec);
+    
+    /**
      * Returns bitSet instance by name.
      *
      * @param name - name of object
@@ -559,6 +649,14 @@ public interface RedissonReactiveClient {
      */
     RScriptReactive getScript();
 
+    /**
+     * Returns script operations object using provided codec.
+     * 
+     * @param codec - codec for params and result
+     * @return Script object
+     */
+    RScriptReactive getScript(Codec codec);
+    
     /**
      * Creates transaction with <b>READ_COMMITTED</b> isolation level.
      * 
@@ -578,10 +676,14 @@ public interface RedissonReactiveClient {
      */
     RBatchReactive createBatch(BatchOptions options);
 
-    /*
-     * Use createBatch(BatchOptions)
+    /**
+     * Return batch object which executes group of
+     * command in pipeline.
+     *
+     * See <a href="http://redis.io/topics/pipelining">http://redis.io/topics/pipelining</a>
+     *
+     * @return Batch object
      */
-    @Deprecated
     RBatchReactive createBatch();
 
     /**
@@ -605,13 +707,6 @@ public interface RedissonReactiveClient {
      * @return Config object
      */
     Config getConfig();
-    
-    /**
-     * Returns the CodecProvider instance
-     * 
-     * @return CodecProvider object
-     */
-    ReferenceCodecProvider getCodecProvider();
     
     /**
      * Get Redis nodes group for server operations
@@ -643,4 +738,11 @@ public interface RedissonReactiveClient {
      */
     boolean isShuttingDown();
 
+    /**
+     * Returns id of this Redisson instance
+     * 
+     * @return id
+     */
+    String getId();
+    
 }

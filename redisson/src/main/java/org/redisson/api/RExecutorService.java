@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Redis based implementation of {@link java.util.concurrent.ExecutorService}
+ * Distributed implementation of {@link java.util.concurrent.ExecutorService}
  * 
  * @author Nikita Koksharov
  *
@@ -52,7 +52,7 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      * @param tasks - tasks to execute
      * @return Future object
      */
-    RExecutorBatchFuture submit(Callable<?> ...tasks);
+    RExecutorBatchFuture submit(Callable<?>...tasks);
     
     /**
      * Submits a Runnable task for execution and returns a Future
@@ -86,7 +86,7 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      * @param tasks - tasks to execute
      * @return Future object
      */
-    RExecutorBatchFuture submit(Runnable ...tasks);
+    RExecutorBatchFuture submit(Runnable...tasks);
     
     /**
      * Returns executor name
@@ -102,25 +102,38 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      */
     boolean delete();
 
-    /**
-     * Register workers
+    /*
+     * Use {@link #registerWorkers(WorkerOptions)} setting instead
      * 
-     * @param workers - workers amount
      */
+    @Deprecated
     void registerWorkers(int workers);
-    
-    /**
-     * Register workers with custom executor
+
+    /*
+     * Use {@link #registerWorkers(WorkerOptions)} setting instead
      * 
-     * @param workers - workers amount
-     * @param executor - executor instance
      */
+    @Deprecated
     void registerWorkers(int workers, ExecutorService executor);
 
     /**
-     * Returns active worker groups
+     * Register workers
      * 
-     * @return active worker groups count
+     * @param options - worker options
+     */
+    void registerWorkers(WorkerOptions options);
+
+    /**
+     * Returns amount of tasks awaiting for execution and/or currently in execution.
+     *
+     * @return amount of tasks
+     */
+    int getTaskCount();
+
+    /**
+     * Returns active workers amount available for tasks execution.
+     * 
+     * @return workers amount
      */
     int countActiveWorkers();
     
@@ -141,6 +154,6 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      * 
      * @param tasks - tasks to execute
      */
-    void execute(Runnable ...tasks);
+    void execute(Runnable...tasks);
 
 }
